@@ -1,48 +1,41 @@
-name: Daily CSE Data Scraper
+name: CSE Scraper
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 14 * * *'  # 9 AM EST daily
-  workflow_dispatch:       # Manual trigger option
+    - cron: '0 14 * * *'
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    
     steps:
-      # Step 1: Checkout code with write permissions
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: true  # Essential for git push
-          fetch-depth: 0            # Required for proper git history
-
-      # Step 2: Set up Python
+        
+      - name: Verify files
+        run: ls -la  # Debug file locations
+        
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      # Step 3: Install dependencies
-      - name: Install packages
-        run: |
-          pip install requests beautifulsoup4 pandas lxml
-
-      # Step 4: Run scraper
-      - name: Execute CSE Scraper
-        run: python cse_scrape.py
-
-      # Step 5: Commit and push results
-      - name: Commit CSV to repository
-        run: |
-          # Configure git
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
           
-          # Move CSV to dedicated directory (optional)
-          mkdir -p cse_data
-          mv cse_data.csv cse_data/ 2>/dev/null || echo "No CSV to move"
+      - name: Install dependencies
+        run: |
+          pip install requests pandas beautifulsoup4 lxml
           
-          # Commit changes
-          git add cse_data/cse_data.csv
-          git commit -m "Automatic CSE data update $(date +'%Y-%m-%d %H:%M')" || echo "No changes to commit"
-          git push
+      - name: Run scraper
+        run: |
+          if [ -f cse_scrape.py ]; then
+            python cse_scrape.py
+          else
+            echo "ERROR: cse_scrape.py not found!"
+            echo "Current files:"
+            ls -la
+            exit 1
+          fi
+          
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cse-data
+          path: cse_data.csv
