@@ -25,10 +25,10 @@ jobs:
           
       - name: Run scraper
         run: |
-          if [ -f cse_scrape.py ]; then
-            python cse_scrape.py
+          if [ -f cse_scraper.py ]; then
+            python cse_scraper.py
           else
-            echo "ERROR: cse_scrape.py not found!"
+            echo "ERROR: cse_scraper.py not found!"
             echo "Current files:"
             ls -la
             exit 1
