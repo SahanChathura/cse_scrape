@@ -1,0 +1,28 @@
+name: Daily CSE Scrape
+on:
+  schedule:
+    - cron: '0 14 * * *'  # Runs at 9 AM EST daily
+  workflow_dispatch:       # Allows manual runs
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        
+      - name: Run scraper
+        run: python cse_scrape.py
+        
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: cse-data
+          path: cse_data.csv
